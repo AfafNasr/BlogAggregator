@@ -1,36 +1,31 @@
 import fs from "fs";
-import os from "os";
 import path from "path";
 
-type Config ={
-dbUrl:string;
- currentUserName?: string;
-};
-
-
-function getConfigFilePath(): string {
-  return path.join(os.homedir(), ".gatorconfig.json");
+interface Config {
+  dbUrl: string;
+  currentUserName?: string;
 }
 
-function writeConfig(cfg: Config): void {
-  const jsonData = JSON.stringify(
-    {
-      db_url: cfg.dbUrl,
-      current_user_name: cfg.currentUserName,
-    },
-    null,
-    2
-  );
-  fs.writeFileSync(getConfigFilePath(), jsonData, "utf-8");
+const CONFIG_PATH = path.resolve(process.env.HOME || "~", ".gatorconfig.json");
+
+function getConfigFilePath(): string {
+  if (!fs.existsSync(CONFIG_PATH)) {
+    const defaultConfig = {
+      db_url: "postgres://postgres:postgres@localhost:5432/gator?sslmode=disable",
+      current_user_name: null
+    };
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(defaultConfig, null, 2));
+  }
+  return CONFIG_PATH;
 }
 
 function validateConfig(rawConfig: any): Config {
-  if (typeof rawConfig !== "object" || rawConfig === null) {
-    throw new Error("Invalid config: not an object");
-  }
+  const dbUrl =
+    typeof rawConfig.db_url === "string" && rawConfig.db_url.length > 0
+      ? rawConfig.db_url
+      : undefined;
 
-  const dbUrl = rawConfig.db_url;
-  if (typeof dbUrl !== "string") {
+  if (!dbUrl) {
     throw new Error("Invalid config: db_url missing or not a string");
   }
 
@@ -41,15 +36,17 @@ function validateConfig(rawConfig: any): Config {
 
   return { dbUrl, currentUserName };
 }
-export function setUser(username: string): void {
-  const cfg = readConfig();
-  cfg.currentUserName = username;
-  writeConfig(cfg);
-}
 
 export function readConfig(): Config {
-  const filePath = getConfigFilePath();
-  const rawData = fs.readFileSync(filePath, "utf-8");
+  const rawData = fs.readFileSync(getConfigFilePath(), "utf-8");
   const parsed = JSON.parse(rawData);
   return validateConfig(parsed);
 }
+
+export function setUser(username: string) {
+  const filePath = getConfigFilePath();
+  const config = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  config.current_user_name = username;
+  fs.writeFileSync(filePath, JSON.stringify(config, null, 2));
+}
+

@@ -1,22 +1,66 @@
-import { setUser } from "./config";
-export type CommandHandler = (cmdName: string, ...args: string[]) => void;
-export function handlerLogin(cmdName: string, ...args: string[]) {
-  if (args.length === 0) {
-    throw new Error(`Error: ${cmdName} command requires a username`);
-  }
+import { setUser, readConfig } from "./config";
+import { createUser, getUserByName } from "./lib/db/queries/users.js";
+
+export type CommandHandler = (args: string[]) => Promise<void>;
+
+export async function handlerLogin(args: string[]) {
   const username = args[0];
-  setUser(username);
-  console.log(`User set to: ${username}`);
+
+  if (!username) {
+    throw new Error("Username is required");
+  }
+
+  const user = await getUserByName(username);
+
+  if (!user) {
+    throw new Error(`User "${username}" does not exist`);
+  }
+
+
+  setUser(user.name);
+
+  console.log(`Logged in successfully as ${user.name}`);
 }
 export type CommandsRegistry = Record<string, CommandHandler>;
-export function registerCommand(registry: CommandsRegistry, cmdName: string, handler: CommandHandler) {
+
+export async function registerCommand(
+  registry: CommandsRegistry,
+  cmdName: string,
+  handler: CommandHandler
+) {
   registry[cmdName] = handler;
 }
-export function runCommand(registry: CommandsRegistry, cmdName: string, ...args: string[]) {
+export async function runCommand(
+  registry: CommandsRegistry,
+  cmdName: string,
+  args: string[]
+): Promise<void> {
   const handler = registry[cmdName];
+
   if (!handler) {
     throw new Error(`Unknown command: ${cmdName}`);
   }
-  handler(cmdName, ...args);
-}
 
+  await handler(args);
+}
+export async function registerHandler(args: string[]) {
+  const username = args[0];
+
+  if (!username) {
+    throw new Error("Username is required");
+  }
+
+  const existingUser = await getUserByName(username);
+
+  if (existingUser) {
+    throw new Error("User already exists");
+  }
+
+  const user = await createUser(username);
+
+  
+  setUser(user.name);
+
+  console.log("User created successfully!");
+  console.log(user);
+}
