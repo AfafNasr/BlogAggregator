@@ -1,7 +1,9 @@
 import { setUser, readConfig } from "./config";
 import { createUser, getUserByName, deleteAllUsers, getUsers } from "./lib/db/queries/users.js";
 import { fetchFeed } from "./rss";
-import { createFeed } from "./lib/db/queries/feeds";
+import { createFeed, getFeeds } from "./lib/db/queries/feeds";
+import { Feed } from "./lib/db/schema";
+import { User } from "./lib/db/schema";
 
 export type CommandHandler = (args: string[]) => Promise<void>;
 
@@ -86,6 +88,16 @@ export async function handlerAgg(args: string[]) {
   const feed = await fetchFeed("https://www.wagslane.dev/index.xml");
   console.log(JSON.stringify(feed, null, 2));
 }
+
+function printFeed(feed: Feed, user: User) {
+  console.log("Feed added successfully:");
+  console.log("ID:", feed.id);
+  console.log("Name:", feed.name);
+  console.log("URL:", feed.url);
+  console.log("User:", user.name);
+  console.log("Created at:", feed.createdAt);
+}
+
 export async function handlerAddFeed(args: string[]) {
   if (args.length < 2) {
     throw new Error("usage: addfeed <name> <url>");
@@ -101,8 +113,26 @@ export async function handlerAddFeed(args: string[]) {
     throw new Error("current user not found");
   }
 
-  const feed = await createFeed(name, url, user.id);
+try {
+    const feed = await createFeed(name, url, user.id);
+    printFeed(feed, user);
+  } catch (err) {
+    console.error("Feed already exists or invalid data.");
+  }
+}
 
-  
-  printFeed(feed, user);
+export async function handlerFeeds() {
+  const feeds = await getFeeds();
+
+  if (feeds.length === 0) {
+    console.log("No feeds found.");
+    return;
+  }
+
+  for (const feed of feeds) {
+    console.log("Name:", feed.name);
+    console.log("URL:", feed.url);
+    console.log("User:", feed.userName);
+    console.log("----");
+  }
 }
