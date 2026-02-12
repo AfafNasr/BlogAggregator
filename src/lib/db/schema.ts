@@ -22,3 +22,25 @@ export const feeds = pgTable("feeds", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
 });
+export type Feed = typeof feeds.$inferSelect; // feeds is the table object in schema.ts
+
+export const feedFollows = pgTable(
+  "feed_follows",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    feedId: uuid("feed_id")
+      .notNull()
+      .references(() => feeds.id, { onDelete: "cascade" }),
+  },
+  (table) => ({
+    uniqueFollow: unique().on(table.userId, table.feedId),
+  })
+);
