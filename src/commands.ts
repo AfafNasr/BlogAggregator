@@ -4,7 +4,7 @@ import { fetchFeed } from "./rss";
 import { createFeed, getFeeds, getFeedByURL } from "./lib/db/queries/feeds";
 import { Feed } from "./lib/db/schema";
 import { User } from "./lib/db/schema";
-import { createFeedFollow, getFeedFollowsForUser } from "./lib/db/queries/feedFollows";
+import { createFeedFollow, getFeedFollowsForUser, deleteFeedFollow } from "./lib/db/queries/feedFollows";
 import { db } from "./lib/db";
 import { users, feeds, feedFollows } from "./lib/db/schema";
 
@@ -198,3 +198,15 @@ export const middlewareLoggedIn = (handler: UserCommandHandler) => {
     await handler(user, ...args);
   };
 };
+
+export async function handlerUnfollow(user: User, url: string) {
+  console.log("[handlerUnfollow] user:", user.name, "url:", url);
+
+  const feed = await getFeedByURL(url);
+  if (!feed) {
+    throw new Error("Feed not found");
+  }
+
+  await deleteFeedFollow(user.id, feed.id);
+  console.log(`${user.name} has unfollowed ${feed.name}`);
+}
