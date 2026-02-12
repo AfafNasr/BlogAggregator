@@ -1,9 +1,10 @@
 import { setUser, readConfig } from "./config";
 import { createUser, getUserByName, deleteAllUsers, getUsers } from "./lib/db/queries/users.js";
 import { fetchFeed } from "./rss";
-import { createFeed, getFeeds } from "./lib/db/queries/feeds";
+import { createFeed, getFeeds, getFeedByURL } from "./lib/db/queries/feeds";
 import { Feed } from "./lib/db/schema";
 import { User } from "./lib/db/schema";
+import { createFeedFollow } from "./lib/db/queries/feedFollows";
 
 export type CommandHandler = (args: string[]) => Promise<void>;
 
@@ -135,4 +136,23 @@ export async function handlerFeeds() {
     console.log("User:", feed.userName);
     console.log("----");
   }
+}
+export async function handlerFollow(args: string[]) {
+  if (args.length < 1) {
+    throw new Error("usage: follow <url>");
+  }
+
+  const [url] = args;
+
+  const config = readConfig();
+  const user = await getUserByName(config.currentUserName);
+  const feed = await getFeedByURL(url);
+
+  if (!feed) {
+    throw new Error("Feed not found");
+  }
+
+  const follow = await createFeedFollow(user.id, feed.id);
+
+  console.log(`${follow.userName} is now following ${follow.feedName}`);
 }
