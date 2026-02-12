@@ -1,6 +1,7 @@
 import { setUser, readConfig } from "./config";
 import { createUser, getUserByName, deleteAllUsers, getUsers } from "./lib/db/queries/users.js";
 import { fetchFeed } from "./rss";
+import { createFeed } from "./lib/db/queries/feeds";
 
 export type CommandHandler = (args: string[]) => Promise<void>;
 
@@ -83,5 +84,25 @@ export async function handlerUsers(args: string[]) {
 }
 export async function handlerAgg(args: string[]) {
   const feed = await fetchFeed("https://www.wagslane.dev/index.xml");
-  console.log(feed);
+  console.log(JSON.stringify(feed, null, 2));
+}
+export async function handlerAddFeed(args: string[]) {
+  if (args.length < 2) {
+    throw new Error("usage: addfeed <name> <url>");
+  }
+
+  const [name, url] = args;
+
+  const config = readConfig();
+
+  const user = await getUserByName(config.currentUserName);
+
+  if (!user) {
+    throw new Error("current user not found");
+  }
+
+  const feed = await createFeed(name, url, user.id);
+
+  
+  printFeed(feed, user);
 }
