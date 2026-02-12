@@ -4,7 +4,7 @@ import { fetchFeed } from "./rss";
 import { createFeed, getFeeds, getFeedByURL } from "./lib/db/queries/feeds";
 import { Feed } from "./lib/db/schema";
 import { User } from "./lib/db/schema";
-import { createFeedFollow } from "./lib/db/queries/feedFollows";
+import { createFeedFollow, getFeedFollowsForUser } from "./lib/db/queries/feedFollows";
 
 export type CommandHandler = (args: string[]) => Promise<void>;
 
@@ -155,4 +155,14 @@ export async function handlerFollow(args: string[]) {
   const follow = await createFeedFollow(user.id, feed.id);
 
   console.log(`${follow.userName} is now following ${follow.feedName}`);
+}
+export async function handlerFollowing() {
+  const config = readConfig();
+  const user = await getUserByName(config.currentUserName);
+
+  const follows = await getFeedFollowsForUser(user.id);
+
+  for (const follow of follows) {
+    console.log(follow.feedName);
+  }
 }

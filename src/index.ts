@@ -1,6 +1,6 @@
 import { registerCommand, runCommand, CommandsRegistry, handlerUsers } from "./commands.js";
 import { handlerLogin } from "./commands.js";
-import { registerHandler , handlerReset, handlerAgg, handlerAddFeed, handlerFeeds, handlerFollow} from "./commands.js";
+import { registerHandler , handlerReset, handlerAgg, handlerAddFeed, handlerFeeds, handlerFollow, handlerFollowing} from "./commands.js";
 
 async function main() {
   const registry: CommandsRegistry = {};
@@ -12,7 +12,7 @@ async function main() {
   registerCommand(registry, "addfeed", handlerAddFeed);
   registerCommand(registry, "feeds", handlerFeeds);
   registerCommand(registry, "follow", handlerFollow);
-
+  registerCommand(registry, "following", handlerFollowing);
   const args = process.argv.slice(2);
   if (args.length === 0) {
     console.error("Error: Not enough arguments provided");
