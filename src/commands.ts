@@ -116,10 +116,14 @@ export async function handlerAddFeed(args: string[]) {
 
 try {
     const feed = await createFeed(name, url, user.id);
+    
     printFeed(feed, user);
+    await createFeedFollow(user.id, feed.id);
+    console.log(`${follow.userName} is now following ${follow.feedName}`);
   } catch (err) {
     console.error("Feed already exists or invalid data.");
   }
+
 }
 
 export async function handlerFeeds() {
