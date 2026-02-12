@@ -1,7 +1,7 @@
 import { setUser, readConfig } from "./config";
 import { createUser, getUserByName, deleteAllUsers, getUsers } from "./lib/db/queries/users.js";
 import { fetchFeed } from "./rss";
-import { createFeed, getFeeds, getFeedByURL } from "./lib/db/queries/feeds";
+import { createFeed, getFeeds, getFeedByURL, scrapeFeeds } from "./lib/db/queries/feeds";
 import { Feed } from "./lib/db/schema";
 import { User } from "./lib/db/schema";
 import { createFeedFollow, getFeedFollowsForUser, deleteFeedFollow } from "./lib/db/queries/feedFollows";
@@ -209,4 +209,42 @@ export async function handlerUnfollow(user: User, url: string) {
 
   await deleteFeedFollow(user.id, feed.id);
   console.log(`${user.name} has unfollowed ${feed.name}`);
+}
+
+export async function parseDuration(durationStr: string): Promise<number> {
+  const regex = /^(\d+)(ms|s|m|h)$/;
+  const match = durationStr.match(regex);
+  if (!match) throw new Error("Invalid duration format, e.g., 1s, 5m, 1h");
+
+  const [, value, unit] = match;
+  const num = parseInt(value, 10);
+
+  switch (unit) {
+    case "ms": return num;
+    case "s": return num * 1000;
+    case "m": return num * 60 * 1000;
+    case "h": return num * 60 * 60 * 1000;
+    default: throw new Error("Unknown time unit");
+  }
+}
+
+export async function handlerAgg(_cmd: string, timeBetweenStr: string) {
+  if (!timeBetweenStr) throw new Error("Usage: agg <time_between_reqs>");
+
+  const timeBetweenMs = await parseDuration(timeBetweenStr);
+  console.log(`Collecting feeds every ${timeBetweenStr}`);
+
+  scrapeFeeds().catch(console.error);
+
+  const interval = setInterval(() => {
+    scrapeFeeds().catch(console.error);
+  }, timeBetweenMs);
+
+  await new Promise<void>((resolve) => {
+    process.on("SIGINT", () => {
+      console.log("Shutting down feed aggregator...");
+      clearInterval(interval);
+      resolve();
+    });
+  });
 }
