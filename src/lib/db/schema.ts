@@ -9,3 +9,16 @@ export const users = pgTable("users", {
     .$onUpdate(() => new Date()),
   name: text("name").notNull().unique(),
 });
+
+export const feeds = pgTable("feeds", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+
+  name: text("name").notNull(),
+  url: text("url").notNull().unique(),
+
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+});
