@@ -1,5 +1,6 @@
 import { setUser, readConfig } from "./config";
 import { createUser, getUserByName, deleteAllUsers, getUsers } from "./lib/db/queries/users.js";
+import { fetchFeed } from "./rss";
 
 export type CommandHandler = (args: string[]) => Promise<void>;
 
@@ -79,4 +80,8 @@ export async function handlerUsers(args: string[]) {
     const suffix = current && u.name === current ? " (current)" : "";
     console.log(`* ${u.name}${suffix}`);
   }
+}
+export async function handlerAgg(args: string[]) {
+  const feed = await fetchFeed("https://www.wagslane.dev/index.xml");
+  console.log(feed);
 }
