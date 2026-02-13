@@ -68,16 +68,16 @@ npm start
 | Command | Description | Example |
 |---------|-------------|---------|
 | `users` | List all registered users | `npm run start users` |
-| `follow <username>` | Follow a user's feeds | `npm run start follow jane` |
-| `following` | List users you are currently following | `npm run start following` |
-| `unfollow <username>` | Unfollow a user | `npm run start unfollow jane` |
+| `follow <feed-url>` | Follow a specific RSS feed | `npm run start follow https://hnrss.org/newest` |
+| `following` | List feeds you are currently following | `npm run start following` |
+| `unfollow <feed-url>` | Unfollow a feed | `npm run start unfollow https://hnrss.org/newest` |
 
 ###  Feed Management
 | Command | Description | Example |
 |---------|-------------|---------|
 | `addfeed <name> <url>` | Add a new RSS feed (must be logged in) | `npm run start addfeed "Hacker News" "https://hnrss.org/newest"` |
 | `feeds` | List your added feeds | `npm run start feeds` |
-| `browse` | Browse feeds from users you follow | `npm run start browse` |
+| `browse` | Browse feeds  you follow | `npm run start browse` |
 
 ###  Aggregated Posts
 | Command | Description | Example |
@@ -156,15 +156,14 @@ npm run start agg 30s
 # Check other users
 npm run start users
 
-# Follow another user
-npm run start follow johndoe
+# Follow a specific feed
+npm run start follow https://hnrss.org/newest 
 
-# Browse their feeds
+# Browse feeds you follow
 npm run start browse
 
-
-# Unfollow if needed
-npm run start unfollow johndoe
+# Unfollow a feed
+npm run start unfollow https://hnrss.org/newest
 
 ```
 
