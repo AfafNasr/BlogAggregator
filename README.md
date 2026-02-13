@@ -1,4 +1,4 @@
-# Gator 🐊
+# Blog Aggregator
 
 A TypeScript CLI tool that aggregates RSS feeds, allowing users to add, follow, and manage feeds while storing posts in a PostgreSQL database.
 
